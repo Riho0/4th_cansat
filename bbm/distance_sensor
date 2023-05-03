@@ -20,7 +20,7 @@ def read_distance():
     while GPIO.input(Echo) == GPIO.HIGH:    #GPIO18がHighの時間
         sig_on = time.time()
 
-    duration = sig_off - sig_on             #GPIO18がHighしている時間を算術
+    duration = sig_on - sig_off             #GPIO18がHighしている時間を算術
     distance = duration * 34000 / 2         #距離を求める(cm)
     return distance
 
