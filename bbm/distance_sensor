@@ -5,6 +5,7 @@ import time
 # GPIOピンの定義(超音波センサ)
 Trig = 27                           #変数"Trig"に27を代入
 Echo = 18                           #変数"Echo"に18を代入
+GPIO.setmode(Trig, GPIO.BCM) 
 GPIO.setup(Trig, GPIO.OUT)          #GPIO27を出力モードに設定
 GPIO.setup(Echo, GPIO.IN)           #GPIO18を入力モードに設定
 
@@ -27,3 +28,4 @@ cm = read_distance()                   #HC-SR04で距離を測定する
 if cm > 2 and cm < 400:                #距離が2～400cmの場合
     print("distance=", int(cm), "cm")  #距離をint型で表示
 time.sleep(1)                          #1秒間待つ
+GPIO.cleanup()
