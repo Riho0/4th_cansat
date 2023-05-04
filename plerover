@@ -1,1 +1,103 @@
-a
+import cv2
+import time
+import numpy as np
+import RPi.GPIO as GPIO  
+
+# Set the GPIO mode
+GPIO.setmode(GPIO.BCM)
+
+# Set the GPIO pin for the servo motor
+servo_R_pin = 22
+servo_L_pin = 23
+GPIO.setup(servo_R_pin, GPIO.OUT)
+GPIO.setup(servo_L_pin, GPIO.OUT)
+
+# Create a PWM object for the servo motor
+pwm_R = GPIO.PWM(servo_R_pin, 50) # 50 Hz frequency
+pwm_L = GPIO.PWM(servo_L_pin, 50)
+
+def move_forward(speed):
+    pwm_R.start(0) # Start with 0% duty cycle (stopped)
+    pwm_L.start(0)
+    # Convert angle to a duty cycle in the range [2.5, 12.5]
+    duty_cycle_R = 2.5 + (speed + 82) / 180 * 10
+    duty_cycle_L = 2.5 + (-speed + 82) / 180 * 10
+    pwm_R.ChangeDutyCycle(duty_cycle_R)
+    pwm_L.ChangeDutyCycle(duty_cycle_L)
+
+def move_turn(speed):
+    pwm_R.start(0) # Start with 0% duty cycle (stopped)
+    pwm_L.start(0)
+    # Convert angle to a duty cycle in the range [2.5, 12.5]
+    duty_cycle = 2.5 + (speed + 82) / 180 * 10
+    pwm_R.ChangeDutyCycle(duty_cycle)
+    pwm_L.ChangeDutyCycle(duty_cycle)
+
+def find_red_quadrant(image):
+    #画像の高さと幅をタプルで返す
+    height, width = image.shape[:2]
+    quarter_width = width // 5
+    
+    # Convert the image to HSV color space
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+    # Define a range of red color in HSV
+    lower_red = np.array([0, 50, 50])
+    upper_red = np.array([10, 255, 255])
+    
+    # HSV画像から赤色のみを抽出するための閾値設定
+    red_mask = cv2.inRange(hsv, lower_red, upper_red)
+   
+    # 赤のマスクを横に4分割
+    red_mask_1 = red_mask[ :, 0: quarter_width]
+    red_mask_2 = red_mask[ :, quarter_width: 2 * quarter_width]
+    red_mask_3 = red_mask[ :, 2 * quarter_width: 3 * quarter_width]
+    red_mask_4 = red_mask[ :, 3 * quarter_width: 4 * quarter_width]
+    red_mask_5 = red_mask[ :, 4 * quarter_width:]
+
+    # 画像の各部に含まれる赤の割合
+    red_percentage = np.sum(red_mask) / (height * width)
+    red_percentage_1 = np.sum(red_mask_1) / (height * quarter_width)
+    red_percentage_2 = np.sum(red_mask_2) / (height * quarter_width)
+    red_percentage_3 = np.sum(red_mask_3) / (height * quarter_width)
+    red_percentage_4 = np.sum(red_mask_4) / (height * quarter_width)
+    red_percentage_5 = np.sum(red_mask_5) / (height * quarter_width)
+
+    # Find the part with the most red
+    red_percentages = [red_percentage_1, red_percentage_2, red_percentage_3, red_percentage_4, red_percentage_5]
+    quadrant = red_percentages.index(max(red_percentages)) + 1
+
+    return quadrant, red_percentage
+
+def image_run():
+    camera = cv2.VideoCapture(0)
+    while True:
+		# Get the current frame
+        ret, image = camera.read()
+		# Break if the image is not obtained
+        if not ret:
+            break
+        # Get the current timestamp
+        timestamp = time.strftime("%Y%m%d%H%M%S", time.gmtime())
+        # Show the frameエラー吐くので一時コメントアウト
+        # cv2.imshow("Image", image)
+        # Save the frame
+        cv2.imwrite(timestamp + ".jpg", image)
+        print("photo ok")
+
+        image_num = find_red_quadrant(image)
+        print(image_num[1])
+        if image_num[1] > 50:
+            break
+        print(image_num[0])
+        if image_num[0] == 3:
+            move_forward(30)
+            time.sleep(3)
+
+    GPIO.cleanup()
+    time.sleep(5)
+    camera.release()
+    #cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+    image_run()
