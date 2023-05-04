@@ -1,5 +1,11 @@
 # 4th_cansat
 4th_cansatはカンサット初心者のために制作されたPythonのプログラムコードの見本です。第19回種子島ロケットコンテストのCansat部門ランバック種目に出場したチームcoconutの機体を参考に機体cocobot、チームpleausnautの機体を参考に機体pleroverをそれぞれ作成しました。
+学習用に読む順番としては
+ファイルbbm内のプログラム
+→cocobot.py
+→ ファイルbbm内のプログラム
+→plerover.py
+の順が難易度としておすすめです
 
 # 内容
 * cocobot
