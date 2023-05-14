@@ -4,18 +4,18 @@ import time
 
 GPIO.setmode(GPIO.BCM)
 # GPIOピンの定義(モーター)
-motor_pin_1 = 11
-motor_pin_2 = 13
-motor_pin_3 = 15
-motor_pin_4 = 16
+motor_pin_1 = 17
+motor_pin_2 = 27
+motor_pin_3 = 11
+motor_pin_4 = 8
 GPIO.setup(motor_pin_1, GPIO.OUT)
 GPIO.setup(motor_pin_2, GPIO.OUT)
 GPIO.setup(motor_pin_3, GPIO.OUT)
 GPIO.setup(motor_pin_4, GPIO.OUT)
 
 # GPIOピンの定義(超音波センサ)
-Trig = 27                           #変数"Trig"に27を代入
-Echo = 18                           #変数"Echo"に18を代入
+Trig = 15                           #変数"Trig"に27を代入
+Echo = 16                           #変数"Echo"に18を代入
 GPIO.setup(Trig, GPIO.OUT)          #GPIO27を出力モードに設定
 GPIO.setup(Echo, GPIO.IN)           #GPIO18を入力モードに設定
 
@@ -66,11 +66,14 @@ if __name__ == '__main__':
             print("distance=", int(cm), "cm")  #距離をint型で表示
             move_forward()
             time.sleep(3)
-        if cm < 10:
+        elif cm < 10:
             move_forward()
             time.sleep(3)
             break
             GPIO.setup(led,GPIO.OUT)
+        else:
+            time.sleep(0.01)
+        time.sleep(0.1)
 
     move_stop()
 
@@ -79,7 +82,15 @@ if __name__ == '__main__':
     time.sleep(0.1)
 
     GPIO.output(led, GPIO.HIGH) # 回路班の上げた回路図より
-    time.sleep(5)
+    time.sleep(2)
+    GPIO.output(led, GPIO.LOW)
+    time.sleep(2)
+    GPIO.output(led, GPIO.HIGH) # 回路班の上げた回路図より
+    time.sleep(2)
+    GPIO.output(led, GPIO.LOW)
+    time.sleep(2)
+    GPIO.output(led, GPIO.HIGH) # 回路班の上げた回路図より
+    time.sleep(2)
     GPIO.output(led, GPIO.LOW)
     print("full success clear!!!")
 
