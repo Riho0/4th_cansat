@@ -1,0 +1,79 @@
+import cv2
+import time
+import numpy as np
+
+#画像を縦に四分割して左から何番目の部分が一番赤色の部分が多いか判定する関数
+def find_red_quadrant(image):
+    #画像の高さと幅をタプルで返す
+    height, width = image.shape[:2]
+    quarter_width = width // 4
+
+    # 画像をHSV形式に変換
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+    # HSV形式での赤色範囲を定義
+    lower_red, upper_red = np.array([0, 50, 50]), np.array([10, 255, 255])
+
+    # HSV画像から赤色のみを抽出するための閾値設定
+    red_mask = cv2.inRange(hsv, lower_red, upper_red)
+
+    # 赤のマスクを縦に4分割
+    red_mask_1 = red_mask[ :, 0: quarter_width]
+    red_mask_2 = red_mask[ :, quarter_width: 2 * quarter_width]
+    red_mask_3 = red_mask[ :, 2 * quarter_width: 3 * quarter_width]
+    red_mask_4 = red_mask[ :, 3 * quarter_width:]
+
+    # 画像の各部に含まれる赤の割合
+    red_percentage = np.sum(red_mask) / (height * width)
+    red_percentage_1 = np.sum(red_mask_1) / (height * quarter_width)
+    red_percentage_2 = np.sum(red_mask_2) / (height * quarter_width)
+    red_percentage_3 = np.sum(red_mask_3) / (height * quarter_width)
+    red_percentage_4 = np.sum(red_mask_4) / (height * quarter_width)
+
+    # 最も赤い部分を探す、赤い部分が十分多ければ0を返す、赤い部分が無ければ5を返す
+    if red_percentage > 50:
+        quadrant = 0
+    elif red_percentage_1 == red_percentage_2 == red_percentage_3 == red_percentage_4:
+        quadrant = 5
+    else:
+        red_percentages = [red_percentage_1, red_percentage_2, red_percentage_3, red_percentage_4]
+        quadrant = red_percentages.index(max(red_percentages)) + 1
+    print(quadrant)
+    return quadrant
+
+if __name__ == '__main__':
+    camera = cv2.VideoCapture(0)
+    while True:
+        # Get the current frame
+        ret, image = camera.read()
+        # Break if the image is not obtained
+        if not ret:
+            break
+        # Get the current timestamp
+        timestamp = time.strftime("%Y%m%d%H%M%S", time.gmtime())
+        # Show the frameエラー吐くので一時コメントアウト
+        #cv2.imshow("Image", image)
+        # Save the frame
+        cv2.imwrite(timestamp + ".jpg", image)
+        print("photo ok")
+        
+        image_num = find_red_quadrant(image)
+        if image_num == 0: 
+            print("all mission finished!!!")
+        elif image_num ==1:
+            #左に強く旋回、具体的値を実験で決定
+            time.sleep(2)
+        elif image_num ==2:
+            #左に弱く旋回、具体的値を実験で決定
+            time.sleep(2)
+        elif image_num ==3:
+            #右に弱く旋回、具体的値を実験で決定
+            time.sleep(2)
+        elif image_num ==4:
+            #右に強く旋回、具体的値を実験で決定
+            time.sleep(2)
+        else:
+            time.sleep(2)
+
+    camera.release()
+    cv2.destroyAllWindows()
